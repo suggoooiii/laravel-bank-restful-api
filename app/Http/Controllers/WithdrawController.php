@@ -2,31 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BankAccount;
+use App\Models\Banknet;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class WithdrawController extends Controller
 {
-    //
+
     public function store(Request $request)
     {
         return $this->showreceipt(
-            $request->input('originaccount'),
+            // $request->input('originaccount'),
             $request->input('amount'),
+            $request->input('name'),
         );
 
     }
 
-    private function showreceipt($originaccount,$amount)
+    private function showreceipt($amount, $name)
     {
-        $account = BankAccount::findOrFail($originaccount);
-        $account->balance -=$amount;
-        $account->save();
-        return response()->json([
-            'originaccount' => [
-                'id' => $account->id,
-                'balance' => $account->balance
-            ]
-            ], 201);
+        if($amount > 500)
+        {
+            throw ValidationException::withMessages([
+                 'Withdrawal Amount Can not Exceed 500'
+            ]);
+        }else{
+            $account=Banknet::firstWhere('name', $name);
+            $account->balance -=$amount;
+            $account->save(); //update
+            return response()->json([
+                'account' => [
+                    'id' => $account->id,
+                    'balance' => $account->balance
+                ]
+                ], 201);
+
+        }
     }
 }

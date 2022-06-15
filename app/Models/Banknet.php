@@ -9,6 +9,6 @@ class Banknet extends Model
 {
     use HasFactory;
     protected $fillable = ['id', 'name', 'balance'];
-    protected $attributes = ['balance' => 0];
+    // protected $attributes = ['balance' => 0];
 
 }

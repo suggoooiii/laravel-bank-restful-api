@@ -12,25 +12,26 @@ class DepositController extends Controller
     {
         // OR USE ==> php artisan make:request StorePostRequest
         $request->validate([
-                    'id'=>'required',
-                    'amount'=>'required'
+                    'amount'=>'required',
+                    'name'=>'required'
                     // 'balance'=>'required',
                 ]);
         return $this->depositreceipt(
             // find a way to check balance first
-            $request->input('destination'),
-            $request->input('amount')
+            $request->input('amount'),
+            $request->input('name')
         );
 
     }
-    private function depositreceipt($destination,$amount)
+    private function depositreceipt($amount,$name)
     {
-        // find a way to check balance first
+        // $account = Banknet::firstOrCreate([
+            //     'id' => $destination,
+            //     'amount'=>$amount
+            // ]);
 
-        $account = Banknet::firstOrCreate([
-            'id' => $destination,
-            'amount'=>$amount
-        ]);
+        // find a way to check balance first
+        $account=Banknet::firstWhere('name', $name);
         if($account->wasRecentlyCreated)
         {
             // since its a new account so balance => 0 which means no charge
@@ -39,14 +40,15 @@ class DepositController extends Controller
             $account->save();
 
         } else{
-            $charge = 1;
-            $account->balance += $amount * $charge;
+            $charge = $account->balance < 0 ? 20/100 : 1;
+            $depositedAmount =$account->balance + $amount;
+           $account->balance -= $total =  $depositedAmount * $charge;
             $account->save();
         }
         return response()->json([
-            'destination' => [
+            'account' => [
                 'id' => $account->id,
-                'balance' => $account->balance
+                'balance' => $$account->balance
             ]
             ], 201);
     }
